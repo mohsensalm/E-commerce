@@ -1,0 +1,6 @@
+@IDP.Services_HostAddress = http://localhost:5004
+
+GET {{IDP.Services_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
