@@ -29,6 +29,8 @@ namespace IDP.Api.Controllers.V1
         [HttpPost("RegisterOtp")]
         public async Task<IActionResult> RegisterAndSendOTP([FromBody] AuthComand authComand)
         {
+            await Console.Out.WriteLineAsync("");
+
             var res = await _mediator.Send(authComand);
             return Ok(res);
         }
