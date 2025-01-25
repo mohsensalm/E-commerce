@@ -22,11 +22,10 @@ namespace IDP.Api.Controllers.V1
         [HttpPost("Login")]
         public async Task<IActionResult> Login([FromBody] AuthQuery authQuery)
         {
-
             var res = await _mediator.Send(authQuery);
-            return Ok(res); 
-
+            return this.Ok(res);
         }
+
         [HttpPost("RegisterOtp")]
         public async Task<IActionResult> RegisterAndSendOTP([FromBody] AuthComand authComand)
         {
