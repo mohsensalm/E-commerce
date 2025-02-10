@@ -5,10 +5,6 @@ using IDP.Domain.IRepository.Command;
 using IDP.Infra.Data;
 using IDP.Infra.Repository.Command;
 using MediatR;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using System.Reflection;
 
 namespace IDP.Services
@@ -20,48 +16,20 @@ namespace IDP.Services
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
-            builder.Services.AddRazorPages();
-
-            // Configure OAuth 2.0 with Google
-            builder.Services.AddAuthentication(options =>
-            {
-                options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
-            })
-            .AddCookie()
-            .AddOpenIdConnect(options =>
-            {
-                options.Authority = "https://accounts.google.com"; // Google OAuth provider
-                options.ClientId = builder.Configuration["Google:ClientId"]; // Load from appsettings.json
-                options.ClientSecret = builder.Configuration["Google:ClientSecret"]; // Load from appsettings.json
-                options.ResponseType = OpenIdConnectResponseType.Code;
-                options.SaveTokens = true;
-                options.Scope.Add("openid");
-                options.Scope.Add("profile");
-                options.Scope.Add("email");
-                options.CallbackPath = new PathString("/signin-oidc"); // Ensure this matches the callback URL in Google Developer Console
-                options.SignedOutCallbackPath = new PathString("/signout-callback-oidc");
-                options.RemoteAuthenticationTimeout = TimeSpan.FromMinutes(10);
-            });
-
-            // Configure Redis caching
             builder.Services.AddStackExchangeRedisCache(options =>
             {
-                options.Configuration = builder.Configuration.GetValue<string>("CachSetings:Redissetings");
-            });
 
-            // Add controllers and API versioning
+                options.Configuration = builder.Configuration.GetValue<string>("CachSetings:Redissetings");
+
+
+            });
             builder.Services.AddControllers();
+            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-
-            // Configure MediatR
             builder.Services.AddMediatR(typeof(UserHandler).GetTypeInfo().Assembly);
-
-            // Register repositories
             builder.Services.AddScoped<IOTPRepository, OTPRedisRepository>();
-
-            // Configure API versioning
+            //builder.Services.AddSingleton<ShopDBContext>();
             builder.Services.AddApiVersioning(options =>
             {
                 options.DefaultApiVersion = new ApiVersion(1);
@@ -71,23 +39,15 @@ namespace IDP.Services
                     new UrlSegmentApiVersionReader(),
                     new HeaderApiVersionReader("X-Api-Version"));
             })
-            .AddMvc() // This is needed for controllers
-            .AddApiExplorer(options =>
-            {
-                options.GroupNameFormat = "'v'V";
-                options.SubstituteApiVersionInUrl = true;
-            });
-
-            // Configure DbContext for CAP
-            builder.Services.AddDbContext<ShopComandDBContext>(options =>
-            {
-                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-            });
-
-            // Configure CAP with EF Core
+                         .AddMvc() // This is needed for controllers
+                          .AddApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'V";
+    options.SubstituteApiVersionInUrl = true;
+});
             builder.Services.AddCap(options =>
             {
-                options.UseEntityFramework<ShopComandDBContext>(); // Use EF Core as the storage provider
+                //options.UseEntityFramework<ShopDBContext>();
                 options.UseDashboard(path => path.PathMatch = "/cap");
                 options.UseRabbitMQ(options =>
                 {
@@ -101,12 +61,10 @@ namespace IDP.Services
                     };
                 });
                 options.FailedRetryCount = 10;
-                options.FailedRetryInterval = 5; // seconds
+                options.FailedRetryInterval = 5;//second
             });
 
-            // Configure JWT authentication (if needed)
             Auth.Extension.AddJwt(builder.Services, builder.Configuration);
-
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -115,21 +73,10 @@ namespace IDP.Services
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-            else
-            {
-                app.UseExceptionHandler("/Error");
-                app.UseHsts();
-            }
 
-            app.UseHttpsRedirection();
-            app.UseStaticFiles();
-            app.UseRouting();
-
-            // Enable authentication and authorization
-            app.UseAuthentication();
             app.UseAuthorization();
 
-            app.MapRazorPages();
+
             app.MapControllers();
 
             app.Run();
