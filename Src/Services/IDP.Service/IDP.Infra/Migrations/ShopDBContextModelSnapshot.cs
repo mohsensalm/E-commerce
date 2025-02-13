@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace IDP.Infra.Migrations
 {
-    [DbContext(typeof(ShopDBContext))]
+    [DbContext(typeof(ShopDBContextModelSnapshot))]
     partial class ShopDBContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
