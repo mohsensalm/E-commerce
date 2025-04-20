@@ -1,14 +1,14 @@
-using Asp.Versioning;
-using Consul;
-using IDP.Application.Handlers.Comand.User;
-using IDP.Domain.IRepository.Command;
-using IDP.Infra.Data;
-using IDP.Infra.Repository.Command;
-using MediatR;
-using System.Reflection;
-
 namespace IDP.Services
 {
+    using System.Reflection;
+    using Asp.Versioning;
+    using Consul;
+    using IDP.Application.Handlers.Comand.User;
+    using IDP.Domain.IRepository.Command;
+    using IDP.Infra.Data;
+    using IDP.Infra.Repository.Command;
+    using MediatR;
+
     public class Program
     {
         public static void Main(string[] args)
@@ -24,12 +24,14 @@ namespace IDP.Services
 
             });
             builder.Services.AddControllers();
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddMediatR(typeof(UserHandler).GetTypeInfo().Assembly);
             builder.Services.AddScoped<IOTPRepository, OTPRedisRepository>();
-            //builder.Services.AddSingleton<ShopDBContext>();
+            builder.Services.AddCap(option => option.UseSqlServer(string.Empty));
+            // builder.Services.AddSingleton<ShopDBContext>();
             builder.Services.AddApiVersioning(options =>
             {
                 options.DefaultApiVersion = new ApiVersion(1);
@@ -47,7 +49,7 @@ namespace IDP.Services
 });
             builder.Services.AddCap(options =>
             {
-                //options.UseEntityFramework<ShopDBContext>();
+                // options.UseEntityFramework<ShopDBContext>();
                 options.UseDashboard(path => path.PathMatch = "/cap");
                 options.UseRabbitMQ(options =>
                 {
@@ -61,7 +63,7 @@ namespace IDP.Services
                     };
                 });
                 options.FailedRetryCount = 10;
-                options.FailedRetryInterval = 5;//second
+                options.FailedRetryInterval = 5; // second
             });
 
             Auth.Extension.AddJwt(builder.Services, builder.Configuration);
