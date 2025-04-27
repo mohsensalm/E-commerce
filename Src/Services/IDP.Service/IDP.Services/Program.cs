@@ -30,7 +30,7 @@ namespace IDP.Services
             builder.Services.AddSwaggerGen();
             builder.Services.AddMediatR(typeof(UserHandler).GetTypeInfo().Assembly);
             builder.Services.AddScoped<IOTPRepository, OTPRedisRepository>();
-            builder.Services.AddCap(option => option.UseSqlServer(string.Empty));
+            builder.Services.AddCap(option => option.UseSqlServer("Server=.;Database=queryeshopcqrs;Trusted_Connection=True;TrustServerCertificate=True"));
             // builder.Services.AddSingleton<ShopDBContext>();
             builder.Services.AddApiVersioning(options =>
             {
